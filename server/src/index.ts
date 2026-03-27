@@ -64,7 +64,7 @@ import { scheduleReminderCron } from './cron/reminders.js';
 scheduleReminderCron();
 
 // Health check
-app.get('/api/health', (req, res) => {
+app.get('/api/health', (req: express.Request, res: express.Response) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
@@ -104,7 +104,7 @@ const frontendPath = process.env.FRONTEND_PATH || path.join(__dirname, '../../di
 app.use(express.static(frontendPath, { maxAge: '1d', etag: true }));
 
 // Handle React routing, return all requests to React app
-app.get('*', (req, res) => {
+app.get('*', (req: express.Request, res: express.Response) => {
   if (!req.path.startsWith('/api')) {
     res.sendFile(path.join(frontendPath, 'index.html'));
   }
