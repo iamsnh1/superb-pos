@@ -43,6 +43,7 @@ export function ItemDetailsModal({ open, onOpenChange, customer, initialItem, on
 
     const [selectedMeasurementId, setSelectedMeasurementId] = useState<string>("new");
     const [measurements, setMeasurements] = useState<Record<string, number>>({});
+    const [autoLoaded, setAutoLoaded] = useState(false); // true when we pre-filled from saved profile
 
     // Dynamic fields - user can add/remove
     const [activeFields, setActiveFields] = useState<MeasurementField[]>([]);
@@ -72,25 +73,24 @@ export function ItemDetailsModal({ open, onOpenChange, customer, initialItem, on
     const garmentTemplate = templates?.find(t => t.name.toLowerCase() === initialItem?.garment_type?.toLowerCase()) ||
         templates?.find(t => t.code.toLowerCase() === initialItem?.garment_type?.toLowerCase());
 
-    // Initialize
+    // When modal opens: pre-fill from cart item (editing) OR auto-load saved customer profile
     useEffect(() => {
         if (open && initialItem) {
             setPrice(initialItem.price);
             setQty(initialItem.qty || 1);
             setNotes(initialItem.notes || "");
             setDesignNotes(initialItem.design_notes || "");
-            setSelectedMeasurementId("new");
             setNewFieldName("");
+            setAutoLoaded(false);
 
-            // Pre-fill style when editing
             const existingStyle = initialItem.style || "";
             setGarmentStyle(existingStyle);
             setCustomStyle(existingStyle);
 
-            // Pre-fill measurements when editing an existing cart item
             if (initialItem.measurements && Object.keys(initialItem.measurements).length > 0) {
+                // Editing existing cart item — use its measurements
                 setMeasurements(initialItem.measurements);
-                // Rebuild activeFields from saved measurement keys
+                setSelectedMeasurementId("new");
                 const fieldsFromItem = Object.keys(initialItem.measurements).map(key => ({
                     key,
                     label: key.split('_').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
@@ -98,23 +98,45 @@ export function ItemDetailsModal({ open, onOpenChange, customer, initialItem, on
                 }));
                 setActiveFields(fieldsFromItem);
             } else {
-                setMeasurements({});
-                // Set initial active fields from template if available
-                if (garmentTemplate?.measurement_fields) {
-                    try {
-                        const fields = typeof garmentTemplate.measurement_fields === 'string'
-                            ? JSON.parse(garmentTemplate.measurement_fields)
-                            : garmentTemplate.measurement_fields;
-                        setActiveFields(fields);
-                    } catch {
+                // New item — try to auto-load the saved profile for this garment type
+                const savedProfile = existingMeasurements?.find(
+                    (m: any) => m.garment_type?.toLowerCase() === initialItem.garment_type?.toLowerCase()
+                );
+
+                if (savedProfile) {
+                    // ✅ Auto-fill from saved profile — customer already measured before!
+                    setSelectedMeasurementId(String(savedProfile.id));
+                    const parsedMeasurements = typeof savedProfile.measurements === 'string'
+                        ? JSON.parse(savedProfile.measurements)
+                        : (savedProfile.measurements || {});
+                    setMeasurements(parsedMeasurements);
+                    const fieldsFromProfile = Object.keys(parsedMeasurements).map(key => ({
+                        key,
+                        label: key.split('_').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
+                        unit: 'in'
+                    }));
+                    setActiveFields(fieldsFromProfile);
+                    setAutoLoaded(true);
+                } else {
+                    // Truly new customer for this garment — show template fields
+                    setMeasurements({});
+                    setSelectedMeasurementId("new");
+                    if (garmentTemplate?.measurement_fields) {
+                        try {
+                            const fields = typeof garmentTemplate.measurement_fields === 'string'
+                                ? JSON.parse(garmentTemplate.measurement_fields)
+                                : garmentTemplate.measurement_fields;
+                            setActiveFields(fields);
+                        } catch {
+                            setActiveFields([]);
+                        }
+                    } else {
                         setActiveFields([]);
                     }
-                } else {
-                    setActiveFields([]);
                 }
             }
         }
-    }, [open, initialItem, garmentTemplate]);
+    }, [open, initialItem, garmentTemplate, existingMeasurements]);
 
     // If selecting an existing measurement, populate fields
     useEffect(() => {
@@ -313,6 +335,17 @@ export function ItemDetailsModal({ open, onOpenChange, customer, initialItem, on
                     </TabsContent>
 
                     <TabsContent value="measurements" className="space-y-4 py-4">
+                        {/* Auto-loaded banner */}
+                        {autoLoaded && (
+                            <div className="flex items-center gap-2 bg-green-50 border border-green-200 text-green-800 rounded-lg px-3 py-2 text-sm">
+                                <span>✅</span>
+                                <div>
+                                    <span className="font-semibold">Saved measurements loaded.</span>
+                                    <span className="text-green-700"> Edit below if anything has changed, or confirm as-is.</span>
+                                </div>
+                            </div>
+                        )}
+
                         {/* Profile Selection */}
                         <div className="flex justify-between items-center bg-muted/30 p-2 rounded-lg">
                             <Label>Select Measurement Profile</Label>

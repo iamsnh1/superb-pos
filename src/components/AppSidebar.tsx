@@ -73,6 +73,7 @@ const navGroups: NavGroup[] = [
       { title: "Inventory", url: "/inventory", icon: Package, roles: ["admin", "manager", "inventory_manager"] },
       { title: "Staff & Payroll", url: "/employee-payments", icon: DollarSign, roles: ["admin", "manager"] },
       { title: "Expenses", url: "/expenses", icon: Receipt, roles: ["admin", "manager"] },
+      { title: "User Management", url: "/users", icon: Users, roles: ["admin"] },
       { title: "Analytics & Reports", url: "/reports", icon: BarChart3, roles: ["admin", "manager"] },
       { title: "Settings", url: "/settings", icon: Settings, roles: ["admin", "manager"] },
     ],

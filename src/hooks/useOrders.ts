@@ -31,9 +31,10 @@ export function useOrder(id: string | null) {
     queryKey: ["order", id],
     queryFn: async () => {
       if (!id) return null;
-      const { order, timeline, bom } = await api.get(`/orders/${id}`);
+      const { order, timeline, bom, related_orders } = await api.get(`/orders/${id}`);
       return {
         ...order,
+        related_orders: related_orders || [],
         design_specifications: typeof order.design_specifications === 'string' ? JSON.parse(order.design_specifications) : order.design_specifications,
         customers: { full_name: order.customer_name, customer_code: order.customer_code, phone: order.customer_phone },
         measurement_profiles: order.measurements ? {

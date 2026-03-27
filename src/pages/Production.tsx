@@ -92,19 +92,78 @@ export default function ProductionPage() {
   );
 }
 
-function ProductionTable({ mos, isLoading, tailors, onStatusChange, onTailorChange, onCostChange }: any) {
+import { Checkbox } from "@/components/ui/checkbox";
+
+function ProductionTable({ mos, isLoading, tailors, onStatusChange, onTailorChange }: any) {
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+
   if (isLoading) return <div>Loading...</div>;
   if (!mos?.length) return <div className="text-center py-10 text-muted-foreground">No orders found</div>;
 
+  const toggleAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedIds(new Set(mos.map((m: any) => m.id)));
+    } else {
+      setSelectedIds(new Set());
+    }
+  };
+
+  const toggleRow = (id: number, checked: boolean) => {
+    const next = new Set(selectedIds);
+    if (checked) next.add(id);
+    else next.delete(id);
+    setSelectedIds(next);
+  };
+
+  const handleBulkAssign = (tailorId: string) => {
+    selectedIds.forEach(id => onTailorChange(id, tailorId));
+    setSelectedIds(new Set());
+  };
+
+  const handleBulkStatus = (status: string) => {
+    selectedIds.forEach(id => onStatusChange(id, status));
+    setSelectedIds(new Set());
+  };
+
   return (
     <Card>
+      {selectedIds.size > 0 && (
+        <div className="bg-sidebar-accent/30 border-b p-3 flex items-center justify-between animate-in slide-in-from-top-2">
+          <span className="text-sm font-semibold">{selectedIds.size} garments selected</span>
+          <div className="flex items-center gap-3">
+            <Select onValueChange={handleBulkAssign}>
+              <SelectTrigger className="w-[180px] h-8 bg-white"><SelectValue placeholder="Bulk Assign Tailor" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="unassigned">Unassigned</SelectItem>
+                {tailors?.map((t: any) => (
+                  <SelectItem key={t.user_id} value={t.user_id.toString()}>Assign to: {t.profiles.full_name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select onValueChange={handleBulkStatus}>
+              <SelectTrigger className="w-[180px] h-8 bg-white"><SelectValue placeholder="Bulk Change Status" /></SelectTrigger>
+              <SelectContent>
+                {MO_STATUSES.map((s) => (
+                  <SelectItem key={s.value} value={s.value}>Set to: {s.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button variant="ghost" size="sm" onClick={() => setSelectedIds(new Set())}>Cancel</Button>
+          </div>
+        </div>
+      )}
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead className="w-[40px]">
+              <Checkbox 
+                checked={mos.length > 0 && selectedIds.size === mos.length}
+                onCheckedChange={toggleAll}
+              />
+            </TableHead>
             <TableHead>MO #</TableHead>
             <TableHead>Order Details</TableHead>
             <TableHead>Tailor</TableHead>
-            <TableHead>Labor Cost</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Due Date</TableHead>
             <TableHead className="text-right">Notify</TableHead>
@@ -114,7 +173,13 @@ function ProductionTable({ mos, isLoading, tailors, onStatusChange, onTailorChan
           {mos.map((mo: any) => {
             const statusConfig = getStatusConfig(MO_STATUSES, mo.status);
             return (
-              <TableRow key={mo.id}>
+              <TableRow key={mo.id} className={selectedIds.has(mo.id) ? "bg-sidebar-accent/10" : ""}>
+                <TableCell>
+                  <Checkbox 
+                    checked={selectedIds.has(mo.id)}
+                    onCheckedChange={(c) => toggleRow(mo.id, !!c)}
+                  />
+                </TableCell>
                 <TableCell className="font-medium">{mo.mo_number}</TableCell>
                 <TableCell>
                   <div className="flex flex-col">
@@ -139,17 +204,6 @@ function ProductionTable({ mos, isLoading, tailors, onStatusChange, onTailorChan
                   </Select>
                 </TableCell>
                 <TableCell>
-                  <div className="flex items-center">
-                    <span className="text-muted-foreground mr-1">₹</span>
-                    <Input
-                      className="w-20 h-8"
-                      type="number"
-                      defaultValue={mo.labor_cost || 0}
-                      onBlur={(e) => onCostChange(mo.id, e.target.value)}
-                    />
-                  </div>
-                </TableCell>
-                <TableCell>
                   <Select
                     value={mo.status}
                     onValueChange={(v) => onStatusChange(mo.id, v)}
@@ -165,8 +219,8 @@ function ProductionTable({ mos, isLoading, tailors, onStatusChange, onTailorChan
                   </Select>
                 </TableCell>
                 <TableCell>
-                  <div className="flex items-center gap-1">
-                    <Clock className="w-3 h-3 text-muted-foreground" />
+                  <div className="flex items-center gap-1.5 text-sm">
+                    <Clock className="w-4 h-4 text-muted-foreground" />
                     <span className={mo.priority === 'urgent' ? 'text-destructive font-medium' : ''}>
                       {mo.delivery_date ? (() => {
                         try {

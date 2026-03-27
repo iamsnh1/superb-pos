@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Printer, CheckCircle2, ShoppingBag, Send, Eye, EyeOff, FileDown } from "lucide-react";
@@ -166,173 +166,90 @@ ${styles}
                 </div>
 
                 {/* ======== PREMIUM BILL DESIGN ======== */}
-                <div className="bg-white printable-content text-slate-900 font-sans border border-slate-200 rounded-xl overflow-hidden shadow-sm print:shadow-none print:border-none print:rounded-none">
-
+                <div className="bg-white printable-content text-black font-sans w-full p-2 print:p-0">
                     {/* Header */}
-                    <div className="px-6 py-4 border-b-2 border-slate-800 flex items-start justify-between bg-white">
-                        <div className="flex items-center gap-3">
-                            <div>
-                                <img
-                                    src="/bill-header.png"
-                                    alt="SUPERB"
-                                    className="h-12 object-contain object-left"
-                                    onError={(e) => {
-                                        (e.target as HTMLImageElement).style.display = 'none';
-                                        const p = document.createElement('p');
-                                        p.className = 'font-black text-2xl tracking-widest text-slate-900';
-                                        p.textContent = 'SUPERB';
-                                        (e.target as HTMLImageElement).parentNode?.insertBefore(p, (e.target as HTMLImageElement).nextSibling);
-                                    }}
-                                />
-                                <p className="text-slate-600 text-[10px] uppercase tracking-widest mt-0.5">33, Chandralok Complex, Sarojini Devi Road, Secunderabad</p>
-                            </div>
-                        </div>
-                        <div className="text-right shrink-0 flex flex-col items-end gap-1.5">
-                            <div className="p-1 border border-slate-200 rounded-lg bg-white shadow-sm">
-                                <QRCodeSVG value={orderData.order_number || ""} size={52} level="M" />
-                            </div>
-                            <div>
-                                <p className="text-slate-400 text-[9px] uppercase tracking-wider">Order No</p>
-                                <p className="text-slate-900 font-mono font-bold text-xs">{orderData.order_number}</p>
-                            </div>
-                        </div>
+                    <div className="flex flex-col items-start mb-4 text-left">
+                        <img
+                            src="/bill-header.png"
+                            alt="SUPERB"
+                            className="h-[50px] object-contain mb-1"
+                            onError={(e) => {
+                                (e.target as HTMLImageElement).style.display = 'none';
+                                const p = document.createElement('p');
+                                p.className = 'font-black text-4xl tracking-widest text-black uppercase mb-1';
+                                p.textContent = 'SUPERB';
+                                (e.target as HTMLImageElement).parentNode?.insertBefore(p, (e.target as HTMLImageElement).nextSibling);
+                            }}
+                        />
+                        <div className="text-[12px] tracking-wide font-medium">33,chandralok complex, Sarojini devi road, secunderabad</div>
+                        <div className="text-[12px] tracking-wider font-medium uppercase mt-0.5">PH: 9246215215</div>
                     </div>
 
-                    {/* Bill meta */}
-                    <div className="px-6 py-4 bg-slate-50 border-b border-slate-200 grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
-                        <div>
-                            <p className="text-slate-400 uppercase tracking-wider font-medium mb-0.5">Bill No</p>
-                            <p className="font-bold text-red-600 text-base">{orderData.invoiceNumber}</p>
-                        </div>
-                        <div>
-                            <p className="text-slate-400 uppercase tracking-wider font-medium mb-0.5">Date</p>
-                            <p className="font-semibold text-sm">{new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
-                        </div>
-                        <div>
-                            <p className="text-slate-400 uppercase tracking-wider font-medium mb-0.5">Trial Date</p>
-                            <p className="font-semibold text-sm">{orderData.items?.[0]?.trial_date ? new Date(orderData.items[0].trial_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }) : '—'}</p>
-                        </div>
-                        <div>
-                            <p className="text-slate-400 uppercase tracking-wider font-medium mb-0.5">Due Date</p>
-                            <p className="font-bold text-sm text-slate-800">{orderData.items?.[0]?.delivery_date ? new Date(orderData.items[0].delivery_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}</p>
-                        </div>
-                    </div>
+                    {/* Pure 2-Column Layout */}
+                    <div className="flex w-full mt-4 items-stretch">
+                        
+                        {/* Left Column (Meta + Note) */}
+                        <div className="w-1/2 flex flex-col gap-1.5 text-[13px] uppercase font-medium pr-2 justify-between">
+                            <div className="flex flex-col gap-1.5">
+                                <div className="flex gap-2">
+                                    <div className="w-36 whitespace-nowrap">BILL NO : <span className="ml-1">{orderData.invoiceNumber}</span></div>
+                                    <div className="whitespace-nowrap">DATE : <span className="ml-1">{new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).replace(/ /g, '-').toLowerCase()}</span></div>
+                                </div>
+                                
+                                <div className="whitespace-nowrap">
+                                    DUE DATE : <span className="ml-1">{orderData.items?.[0]?.delivery_date ? new Date(orderData.items[0].delivery_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).replace(/ /g, '-').toLowerCase() : ''}</span>
+                                </div>
 
-                    {/* Customer */}
-                    <div className="px-6 py-3 border-b border-slate-200 flex flex-wrap gap-6 text-sm">
-                        <div>
-                            <p className="text-slate-400 text-[10px] uppercase tracking-wider font-medium">Client Name</p>
-                            <p className="font-bold text-base uppercase">{orderData.customer_name || "Guest"}</p>
-                        </div>
-                        {orderData.customer_phone && (
-                            <div>
-                                <p className="text-slate-400 text-[10px] uppercase tracking-wider font-medium">Phone</p>
-                                <p className="font-medium font-mono">{orderData.customer_phone}</p>
-                            </div>
-                        )}
-                    </div>
+                                <div className="whitespace-nowrap">
+                                    CLIENT NAME : <span className="font-bold ml-1 uppercase">{orderData.customer_name || "GUEST"}</span>
+                                </div>
 
-                    {/* Items Table */}
-                    <div className="px-6 py-4">
-                        <table className="w-full text-sm">
-                            <thead>
-                                <tr className="border-b-2 border-slate-900 text-left text-[10px] uppercase tracking-wider text-slate-500">
-                                    <th className="pb-2 w-8 font-semibold">#</th>
-                                    <th className="pb-2 font-semibold">Garment</th>
-                                    <th className="pb-2 font-semibold">Type / Style</th>
-                                    <th className="pb-2 font-semibold text-center w-12">Qty</th>
-                                    <th className="pb-2 font-semibold text-right w-20">Rate</th>
-                                    <th className="pb-2 font-semibold text-right w-24">Amount</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {orderData.items?.map((item: any, i: number) => (
-                                    <tr key={i} className="border-b border-dashed border-slate-100">
-                                        <td className="py-2.5 align-top text-slate-400 text-xs">{i + 1}</td>
-                                        <td className="py-2.5 pr-2 align-top font-bold uppercase text-slate-900 tracking-wide">{item.garment_type}</td>
-                                        <td className="py-2.5 pr-2 align-top text-slate-700">
-                                            <div>{item.style || '—'}</div>
-                                            {showMeasurements && item.measurements && Object.keys(item.measurements).length > 0 && (
-                                                <div className="mt-1 text-[10px] text-slate-500 grid grid-cols-3 gap-x-4 gap-y-0.5">
-                                                    {Object.entries(item.measurements).map(([k, v]) => (
-                                                        <span key={k}><span className="capitalize">{k.replace(/_/g, ' ')}</span>: <strong>{String(v)}</strong></span>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </td>
-                                        <td className="py-2.5 align-top text-center font-medium text-slate-800">{item.qty || 1}</td>
-                                        <td className="py-2.5 align-top text-right text-slate-500 text-xs">{formatCurrency(item.price)}</td>
-                                        <td className="py-2.5 align-top text-right font-semibold text-slate-800">{formatCurrency(item.price * (item.qty || 1))}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                                <div className="whitespace-nowrap mb-6">
+                                    PHONE NO : <span className="ml-1 tracking-wider">{orderData.customer_phone || ""}</span>
+                                </div>
+                            </div>
 
-                    {/* Totals */}
-                    <div className="px-6 py-4 flex justify-between gap-8 border-t border-slate-100">
-                        <div className="flex-1 text-[10px] text-slate-500 leading-relaxed max-w-[50%]">
-                            <p className="font-bold text-slate-700 text-xs mb-1 italic">Note:</p>
-                            <p>Please bring this bill with you on the due date. Delivery will be made after 7.00 p.m. If delivery is not taken within 30 days from due date, the firm is not responsible for any damages to the clothes.</p>
+                            <div className="pr-2 text-[12px] leading-relaxed normal-case tracking-wide">
+                                <span className="font-bold underline text-[13px] italic">Note</span> <span className="italic">: Please bring this bill on the due date.</span><br/>
+                                <span className="italic">delivery will be made after 7.00 p.m. If delivery is not</span><br/>
+                                <span className="italic">taken within 30 days from due date, the firm is not</span><br/>
+                                <span className="italic">responsible for any damages to the clothes.</span>
+                            </div>
                         </div>
-                        <div className="w-56 space-y-1.5 text-sm border-l border-slate-900 pl-6">
-                            <div className="flex justify-between text-slate-600">
-                                <span>Subtotal</span>
-                                <span>{formatCurrency(subtotal)}</span>
-                            </div>
-                            {discountAmt > 0 && (
-                                <div className="flex justify-between text-green-600">
-                                    <span>Discount</span>
-                                    <span>−{formatCurrency(discountAmt)}</span>
-                                </div>
-                            )}
-                            {orderData.cgst_amount > 0 && (
-                                <div className="flex justify-between text-slate-500 text-xs italic">
-                                    <span>CGST ({orderData.cgst_rate}%)</span>
-                                    <span>+{formatCurrency(orderData.cgst_amount)}</span>
-                                </div>
-                            )}
-                            {orderData.sgst_amount > 0 && (
-                                <div className="flex justify-between text-slate-500 text-xs italic">
-                                    <span>SGST ({orderData.sgst_rate}%)</span>
-                                    <span>+{formatCurrency(orderData.sgst_amount)}</span>
-                                </div>
-                            )}
-                            <div className="flex justify-between font-bold text-base border-t border-slate-900 pt-2 mt-2">
-                                <span>Total</span>
-                                <span>{formatCurrency(grandTotal)}</span>
-                            </div>
-                            
-                            <div className="flex flex-col gap-1 border-t border-slate-200 pt-2 mt-2">
-                                <div className="flex justify-between text-slate-800 font-semibold">
-                                    <span>Advance Paid</span>
-                                    <span>{formatCurrency(advancePaid)}</span>
-                                </div>
-                                {orderData.split_payment && orderData.split_payment.length > 0 ? (
-                                    <div className="flex flex-col gap-0.5 mt-0.5">
-                                        {orderData.split_payment.map((p: any, idx: number) => (
-                                            <div key={idx} className="flex justify-between text-[10px] text-slate-500 italic">
-                                                <span>— {p.method.toUpperCase()}</span>
-                                                <span>{formatCurrency(p.amount)}</span>
+
+                        {/* Right Column (Items + Total + Sign) */}
+                        <div className="w-1/2 flex flex-col text-[13px] uppercase pl-4 pr-10 font-medium justify-start">
+                            <div className="flex flex-col">
+                                <div className="grid grid-cols-[1fr_40px_20px_50px] gap-x-3 gap-y-1.5 w-full text-right mb-4">
+                                    {orderData.items?.map((item: any, i: number) => (
+                                        <React.Fragment key={i}>
+                                            <div className="text-left whitespace-nowrap overflow-hidden text-ellipsis">
+                                                {item.garment_type}
                                             </div>
-                                        ))}
+                                            <div className="text-left whitespace-nowrap">{item.price}</div>
+                                            <div className="w-[20px] text-center whitespace-nowrap">{item.qty || 1}</div>
+                                            <div className="w-[50px] text-right whitespace-nowrap">{item.price * (item.qty || 1)}</div>
+                                        </React.Fragment>
+                                    ))}
+                                    
+                                    {/* Total Box Locked Exactly to QTY and AMOUNT cols */}
+                                    <div className="col-start-3 col-span-2 border-t border-b border-black text-right py-1.5 mt-2 leading-none">
+                                        {grandTotal}
                                     </div>
-                                ) : (
-                                    <div className="flex justify-between text-[10px] text-slate-500 italic">
-                                        <span>— {(orderData.payment_method || 'cash').toUpperCase()}</span>
-                                        <span>{formatCurrency(advancePaid)}</span>
+                                </div>
+                            </div>
+
+                            <div className={`flex items-end uppercase pb-1 mt-6 ${(orderData.cgst_amount > 0 || orderData.sgst_amount > 0) ? "justify-between" : "justify-end"}`}>
+                                {(orderData.cgst_amount > 0 || orderData.sgst_amount > 0) && (
+                                    <div className="flex flex-col gap-1.5 whitespace-nowrap text-[12px]">
+                                        {orderData.cgst_amount > 0 && <div>CGST {orderData.cgst_rate ? `${orderData.cgst_rate}%` : '%'}</div>}
+                                        {orderData.sgst_amount > 0 && <div>SGST {orderData.sgst_rate ? `${orderData.sgst_rate}%` : '%'}</div>}
                                     </div>
                                 )}
-                            </div>
-
-                            <div className="flex justify-between font-black text-base text-red-600 border-t-2 border-slate-900 pt-2 mt-2 bg-slate-50 p-1.5 -mx-1.5 -mb-1.5">
-                                <span>Balance</span>
-                                <span>{formatCurrency(balanceDue)}</span>
-                            </div>
-
-                            <div className="flex justify-between text-slate-500 text-xs pt-6">
-                                <span className="uppercase tracking-widest text-[9px]">Sign</span>
-                                <span className="border-b border-slate-300 w-24"></span>
+                                <div className="flex gap-4 items-end ml-4 whitespace-nowrap text-[13px]">
+                                    <span className="mb-0.5">SIGN</span>
+                                    <div className="w-32 border-b border-black h-4"></div>
+                                </div>
                             </div>
                         </div>
                     </div>

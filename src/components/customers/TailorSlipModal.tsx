@@ -16,10 +16,20 @@ export function TailorSlipModal({ open, onOpenChange, customer, measurement, tem
     const slipEl = document.getElementById("printable-slip");
     if (!slipEl) return;
 
-    const printWindow = window.open("", "_blank", "width=280,height=500");
-    if (!printWindow) return;
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'fixed';
+    iframe.style.right = '0';
+    iframe.style.bottom = '0';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    iframe.style.border = '0';
+    document.body.appendChild(iframe);
 
-    printWindow.document.write(`
+    const doc = iframe.contentDocument || iframe.contentWindow?.document;
+    if (!doc) return;
+
+    doc.open();
+    doc.write(`
       <!DOCTYPE html>
       <html>
         <head>
@@ -28,16 +38,14 @@ export function TailorSlipModal({ open, onOpenChange, customer, measurement, tem
           <style>
             * { margin: 0; padding: 0; box-sizing: border-box; }
             body { font-family: Arial, sans-serif; font-size: 8px; color: #000; background: white; }
-            @page { size: A4; margin: 4mm; }
+            @page { size: 80mm auto; margin: 4mm; }
 
             #slip-content { 
-              width: 60mm; 
+              width: 70mm; 
               padding: 3mm 3mm; 
               border: 1px dashed #000; 
-              float: right;
             }
 
-            /* Override Tailwind classes inside the cloned HTML */
             .border-b-2 { border-bottom: 2px solid black; padding-bottom: 2px; margin-bottom: 2px; }
             .border-b { border-bottom: 1px solid #ddd; }
             .border { border: 1px solid black; }
@@ -50,10 +58,13 @@ export function TailorSlipModal({ open, onOpenChange, customer, measurement, tem
             .justify-between { justify-content: space-between; }
             .items-center { align-items: center; }
             .mb-1 { margin-bottom: 1px; }
+            .mb-0\\.5 { margin-bottom: 1px; }
             .mb-2 { margin-bottom: 2px; }
+            .pb-1 { padding-bottom: 2px; }
             .pb-2 { padding-bottom: 2px; }
             .mt-1 { margin-top: 1px; }
             .mt-2 { margin-top: 2px; }
+            .pt-0\\.5 { padding-top: 1px; }
             .pt-1 { padding-top: 1px; }
             .px-1 { padding-left: 2px; padding-right: 2px; }
             .py-0 { padding-top: 0; padding-bottom: 0; }
@@ -66,17 +77,16 @@ export function TailorSlipModal({ open, onOpenChange, customer, measurement, tem
             .block { display: block; }
             .opacity-70 { opacity: 0.7; }
             .opacity-60 { opacity: 0.6; }
-
+            .text-sm { font-size: 11px; }
             .text-lg { font-size: 12px; }
-            .text-\[12px\] { font-size: 10px; }
-            .text-\[10px\] { font-size: 8px; }
-            .text-\[9px\] { font-size: 7px; }
-            .text-\[8px\] { font-size: 6px; }
-
+            .text-\\[12px\\] { font-size: 10px; }
+            .text-\\[10px\\] { font-size: 8px; }
+            .text-\\[9px\\] { font-size: 7px; }
+            .text-\\[8px\\] { font-size: 6px; }
+            .text-\\[7px\\] { font-size: 5.5px; }
             .text-gray-600 { color: #555; }
             .text-gray-700 { color: #444; }
             .text-red-600 { color: #cc0000; }
-
             .no-print, button { display: none !important; }
             .p-2 { padding: 1px; }
             .ml-1 { margin-left: 2px; }
@@ -88,12 +98,17 @@ export function TailorSlipModal({ open, onOpenChange, customer, measurement, tem
           </div>
           <script>
             document.querySelectorAll('.no-print, button').forEach(el => el.remove());
-            window.onload = function() { window.print(); window.close(); };
           </script>
         </body>
       </html>
     `);
-    printWindow.document.close();
+    doc.close();
+
+    setTimeout(() => {
+      iframe.contentWindow?.focus();
+      iframe.contentWindow?.print();
+      setTimeout(() => document.body.removeChild(iframe), 1000);
+    }, 500);
   };
 
   if (!measurement || !customer) return null;

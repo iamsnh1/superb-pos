@@ -17,7 +17,7 @@ import { ArrowLeft, Clock, Package, FileText, Edit, XCircle, User, Scissors, Dol
 import { format } from "date-fns";
 import { OrderEditDialog } from "./OrderEditDialog";
 import { CancelOrderDialog } from "./CancelOrderDialog";
-import { TailorSlipModal } from "@/components/customers/TailorSlipModal";
+import { OrderSlipModal } from "./OrderSlipModal";
 
 interface OrderDetailProps {
   orderId: string;
@@ -170,7 +170,7 @@ export function OrderDetail({ orderId, onBack }: OrderDetailProps) {
                 <Receipt className="w-4 h-4 mr-1" /> Invoice
               </Button>
               <Button size="sm" variant="outline" className="flex-1 border-orange-300 text-orange-700 hover:bg-orange-50" onClick={() => setSlipOpen(true)}>
-                <Printer className="w-4 h-4 mr-1" /> Tailor Slip
+                <Printer className="w-4 h-4 mr-1" /> Order Slip
               </Button>
             </div>
 
@@ -311,23 +311,33 @@ export function OrderDetail({ orderId, onBack }: OrderDetailProps) {
       <OrderEditDialog order={o} open={editOpen} onOpenChange={setEditOpen} />
       <CancelOrderDialog orderId={orderId} orderNumber={o.order_number} open={cancelOpen} onOpenChange={setCancelOpen} />
       <AddPaymentDialog open={paymentOpen} onOpenChange={setPaymentOpen} orderId={orderId} balanceAmount={o.balance_amount || 0} />
-      <TailorSlipModal
+      <OrderSlipModal
         open={slipOpen}
         onOpenChange={setSlipOpen}
-        customer={o.customers}
-        measurement={{
-          bill_no: o.invoice_number || o.order_number,
-          garment_type: o.garment_type,
-          measurements: o.measurement_profiles?.measurements || {},
-          notes: o.notes || "",
-          bill_notes: o.design_specifications?.notes || "",
-          design_spec: JSON.stringify({
-            style: o.design_specifications?.style || o.style || "",
-            notes: o.design_specifications?.notes || o.notes || "",
-            design_notes: o.design_specifications?.design_notes || ""
-          })
+        order={{
+          ...o,
+          customer_name: o.customers?.full_name,
+          customer_phone: o.customers?.phone,
+          invoice_number: o.invoice_number,
         }}
-        template={templates?.find((t: any) => t.code === o.garment_type || t.name === o.garment_type) || null}
+        items={[
+          {
+            garment_type: o.garment_type,
+            measurements: o.measurement_profiles?.measurements || o.measurements || {},
+            design_specifications: o.design_specifications,
+            notes: o.notes,
+            qty: o.quantity || 1,
+          },
+          // Sibling orders from the same invoice
+          ...(o.related_orders || []).map((rel: any) => ({
+            garment_type: rel.garment_type,
+            measurements: typeof rel.measurements === 'string' ? JSON.parse(rel.measurements) : (rel.measurements || {}),
+            design_specifications: typeof rel.design_specifications === 'string' ? JSON.parse(rel.design_specifications) : rel.design_specifications,
+            notes: rel.notes,
+            qty: rel.qty || 1,
+          }))
+        ]}
+        templates={templates || []}
       />
     </div>
   );

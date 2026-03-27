@@ -18,13 +18,65 @@ export function MeasurementPrintModal({ open, onOpenChange, customer, measuremen
     if (!measurement) return null;
 
     const handlePrint = () => {
-        window.print();
+        const printContents = document.querySelector('.measurement-printable-content')?.innerHTML;
+        if (!printContents) return;
+
+        const styleSheets = Array.from(document.styleSheets)
+            .map((styleSheet) => {
+                try {
+                    return Array.from(styleSheet.cssRules)
+                        .map((rule) => rule.cssText)
+                        .join('\n');
+                } catch {
+                    return '';
+                }
+            })
+            .join('\n');
+
+        const iframe = document.createElement('iframe');
+        iframe.style.position = 'fixed';
+        iframe.style.right = '0';
+        iframe.style.bottom = '0';
+        iframe.style.width = '0';
+        iframe.style.height = '0';
+        iframe.style.border = '0';
+        document.body.appendChild(iframe);
+
+        const doc = iframe.contentDocument || iframe.contentWindow?.document;
+        if (!doc) return;
+
+        doc.open();
+        doc.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Measurement Slip</title>
+                <style>
+                    ${styleSheets}
+                    @media print {
+                        @page { margin: 10mm; size: A5; }
+                        body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                    }
+                </style>
+            </head>
+            <body class="bg-white text-black font-sans">
+                <div class="p-4">${printContents}</div>
+            </body>
+            </html>
+        `);
+        doc.close();
+
+        setTimeout(() => {
+            iframe.contentWindow?.focus();
+            iframe.contentWindow?.print();
+            setTimeout(() => document.body.removeChild(iframe), 1000);
+        }, 500);
     };
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-md sm:max-w-[400px] overflow-y-auto max-h-[90vh]">
-                <div className="bg-white p-4 print:p-0 text-black printable-content">
+                <div className="bg-white p-4 print:p-0 text-black measurement-printable-content">
                     {/* Print Only Header */}
                     <div className="text-center mb-6">
                         <img src="/bill-header.png" alt="SUPERB" className="mx-auto h-20 w-auto object-contain mb-2 print:h-24" />

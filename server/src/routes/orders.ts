@@ -86,7 +86,19 @@ router.get('/:id', (req: AuthRequest, res) => {
 
   const bom = db.prepare(`SELECT * FROM order_bom_items WHERE order_id = ?`).all(req.params.id);
 
-  res.json({ order, timeline, bom });
+  let related_orders = [];
+  if ((order as any).invoice_id) {
+    related_orders = db.prepare(`
+      SELECT o.*, c.customer_code, c.full_name as customer_name, c.phone as customer_phone,
+             m.garment_type as measurement_garment_type, m.label as measurement_label, m.measurements
+      FROM orders o
+      JOIN customers c ON o.customer_id = c.id
+      LEFT JOIN measurement_profiles m ON o.measurement_profile_id = m.id
+      WHERE o.invoice_id = ? AND o.id != ?
+    `).all((order as any).invoice_id, (order as any).id) as any[];
+  }
+
+  res.json({ order, timeline, bom, related_orders });
 });
 
 // Create bulk orders

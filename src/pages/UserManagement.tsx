@@ -42,6 +42,12 @@ export default function UserManagement() {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const data = Object.fromEntries(formData.entries());
+    
+    // Auto-generate generic email and password so the owner doesn't have to provide them
+    const timestamp = Date.now();
+    data.email = `worker_${timestamp}@superb.internal`;
+    data.password = `password_${timestamp}`;
+    
     createUser.mutate(data, {
       onSuccess: () => setIsAddOpen(false)
     });
@@ -84,7 +90,7 @@ export default function UserManagement() {
               <form onSubmit={handleAddUser}>
                 <DialogHeader>
                   <DialogTitle>Add Team Member</DialogTitle>
-                  <DialogDescription>Create a new account for your employee.</DialogDescription>
+                  <DialogDescription>Quickly add a worker so you can assign them garments.</DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                   <div className="grid gap-2">
@@ -92,16 +98,8 @@ export default function UserManagement() {
                     <Input id="full_name" name="full_name" required placeholder="John Doe" />
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input id="email" name="email" required type="email" placeholder="john@tailorflow.com" />
-                  </div>
-                  <div className="grid gap-2">
                     <Label htmlFor="phone">Phone Number</Label>
                     <Input id="phone" name="phone" placeholder="+91 9876543210" />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="password">Password</Label>
-                    <Input id="password" name="password" required type="password" placeholder="••••••••" />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="grid gap-2">
@@ -115,19 +113,19 @@ export default function UserManagement() {
                           <SelectItem value="manager">Manager</SelectItem>
                           <SelectItem value="pos_operator">POS Operator</SelectItem>
                           <SelectItem value="delivery_person">Delivery Person</SelectItem>
-                          <SelectItem value="inventory_manager">Inventory Manager</SelectItem>
+                          <SelectItem value="inventory_manager">Master</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                     <div className="grid gap-2">
-                      <Label htmlFor="salary_type">Salary</Label>
+                      <Label htmlFor="salary_type">Payment Type</Label>
                       <Select name="salary_type" defaultValue="monthly">
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="monthly">Monthly Salary</SelectItem>
-                          <SelectItem value="piece_rate">Piece Rate (Commission)</SelectItem>
+                          <SelectItem value="piece_rate">Piece Rate (Per Garment)</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -144,7 +142,7 @@ export default function UserManagement() {
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button type="submit" className="w-full">Create Employee Account</Button>
+                  <Button type="submit" className="w-full">Add Worker</Button>
                 </DialogFooter>
               </form>
             </DialogContent>
