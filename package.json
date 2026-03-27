@@ -162,7 +162,8 @@
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "Superb Pos",
-      "uninstallDisplayName": "Superb Pos"
+      "uninstallDisplayName": "Superb Pos",
+      "include": "build/installer.nsh"
     },
     "publish": {
       "provider": "github",

@@ -3,8 +3,12 @@ name: Build and Release Superb POS
 on:
   push:
     tags:
-      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
-  workflow_dispatch: # Allows manual trigger from GitHub UI
+      - 'v*'
+  workflow_dispatch:
+
+# Give the workflow token write access to create releases
+permissions:
+  contents: write
 
 jobs:
   build:
