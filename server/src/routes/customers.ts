@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { db, generateNextNumber } from '../db/index.js';
-import { authMiddleware, AuthRequest } from '../middleware/auth.js';
+import { authMiddleware, AuthRequest, roleMiddleware } from '../middleware/auth.js';
 
 const router = Router();
 router.use(authMiddleware);
@@ -286,6 +286,61 @@ router.get('/:id/ledger', (req: AuthRequest, res) => {
             orders,
             payments
         });
+    } catch (err: any) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Settle Dues (Close Khata)
+router.post('/:id/settle', roleMiddleware('admin', 'manager', 'pos_operator'), (req: AuthRequest, res) => {
+    try {
+        const customerId = req.params.id;
+        const { amount, method = 'cash', notes = 'Khata Settlement' } = req.body;
+        let remainingAmount = Number(amount);
+
+        if (!remainingAmount || remainingAmount <= 0) {
+            return res.status(400).json({ error: 'Valid settlement amount is required' });
+        }
+
+        // Get all unpaid orders for this customer, oldest first
+        const unpaidOrders = db.prepare(`
+            SELECT id, balance_amount, order_number 
+            FROM orders 
+            WHERE customer_id = ? AND balance_amount > 0 AND status != 'cancelled'
+            ORDER BY created_at ASC
+        `).all(customerId) as any[];
+
+        if (unpaidOrders.length === 0) {
+            return res.status(400).json({ error: 'No outstanding dues for this customer' });
+        }
+
+        const insertPayment = db.prepare(`
+            INSERT INTO payments (order_id, amount, method, notes, collected_by, created_at)
+            VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+        `);
+
+        const updateOrder = db.prepare(`
+            UPDATE orders SET balance_amount = balance_amount - ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?
+        `);
+
+        const transaction = db.transaction(() => {
+            const recordedPayments = [];
+            for (const order of unpaidOrders) {
+                if (remainingAmount <= 0) break;
+                
+                const payAmount = Math.min(remainingAmount, order.balance_amount);
+                
+                insertPayment.run(order.id, payAmount, method, notes + ` (Order #${order.order_number})`, req.user!.id);
+                updateOrder.run(payAmount, order.id);
+                
+                remainingAmount -= payAmount;
+                recordedPayments.push({ order_id: order.id, amount: payAmount });
+            }
+            return recordedPayments;
+        });
+
+        const payments = transaction();
+        res.json({ success: true, payments, unallocated: remainingAmount });
     } catch (err: any) {
         res.status(500).json({ error: err.message });
     }

@@ -1,23 +1,48 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { api } from "@/lib/api";
 import { formatCurrency } from "@/lib/utils";
 import {
-    Wallet, ArrowUpRight, ArrowDownRight, Receipt
+    Wallet, ArrowUpRight, ArrowDownRight, Receipt, CheckCircle
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
+import { useState } from "react";
 
 interface CustomerLedgerProps {
     customerId: number;
 }
 
 export function CustomerLedger({ customerId }: CustomerLedgerProps) {
+    const queryClient = useQueryClient();
+    const [settleOpen, setSettleOpen] = useState(false);
+    const [settleAmount, setSettleAmount] = useState("");
+    const [settleMethod, setSettleMethod] = useState("cash");
+
     const { data, isLoading } = useQuery({
         queryKey: ["customer-ledger", customerId],
         queryFn: () => api.get<any>(`/customers/${customerId}/ledger`),
         enabled: !!customerId,
+    });
+
+    const settleMutation = useMutation({
+        mutationFn: async (payload: any) => {
+            return api.post(`/customers/${customerId}/settle`, payload);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["customer-ledger", customerId] });
+            toast.success("Khata settled successfully!");
+            setSettleOpen(false);
+        },
+        onError: (err: any) => {
+            toast.error(err.message || "Failed to settle khata");
+        }
     });
 
     if (isLoading) {
@@ -61,14 +86,28 @@ export function CustomerLedger({ customerId }: CustomerLedgerProps) {
                 </Card>
                 <Card className={`${summary.total_balance > 0 ? 'bg-red-50/50 border-red-200/50' : 'bg-emerald-50/50 border-emerald-200/50'}`}>
                     <CardContent className="pt-4 pb-3 px-4">
-                        <div className="flex items-center gap-2">
-                            <Wallet className={`h-4 w-4 ${summary.total_balance > 0 ? 'text-red-600' : 'text-emerald-600'}`} />
-                            <div>
-                                <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Balance Due</p>
-                                <p className={`text-lg font-bold ${summary.total_balance > 0 ? 'text-red-700' : 'text-emerald-700'}`}>
-                                    {formatCurrency(summary.total_balance)}
-                                </p>
+                        <div className="flex items-start justify-between">
+                            <div className="flex items-center gap-2">
+                                <Wallet className={`h-4 w-4 ${summary.total_balance > 0 ? 'text-red-600' : 'text-emerald-600'}`} />
+                                <div>
+                                    <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Balance Due</p>
+                                    <p className={`text-lg font-bold ${summary.total_balance > 0 ? 'text-red-700' : 'text-emerald-700'}`}>
+                                        {formatCurrency(summary.total_balance)}
+                                    </p>
+                                </div>
                             </div>
+                            {summary.total_balance > 0 && (
+                                <Button 
+                                    size="sm" 
+                                    onClick={() => {
+                                        setSettleAmount(String(summary.total_balance));
+                                        setSettleOpen(true);
+                                    }}
+                                    className="bg-red-600 hover:bg-red-700 text-white h-8 text-xs px-2"
+                                >
+                                    <CheckCircle className="w-3 h-3 mr-1" /> Close Khata
+                                </Button>
+                            )}
                         </div>
                     </CardContent>
                 </Card>
@@ -141,6 +180,44 @@ export function CustomerLedger({ customerId }: CustomerLedgerProps) {
                     </div>
                 </CardContent>
             </Card>
+
+            <Dialog open={settleOpen} onOpenChange={setSettleOpen}>
+                <DialogContent className="max-w-sm">
+                    <DialogHeader>
+                        <DialogTitle>Close Customer Khata</DialogTitle>
+                        <DialogDescription>
+                            Settle the outstanding balance of this customer. This will mark the oldest pending bills as paid.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                            <Label>Outstanding Balance</Label>
+                            <div className="p-3 bg-red-50 text-red-700 border border-red-200 rounded-md font-bold text-lg">
+                                {formatCurrency(summary.total_balance)}
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            <Label>Amount Received</Label>
+                            <Input 
+                                type="number" 
+                                value={settleAmount} 
+                                onChange={(e) => setSettleAmount(e.target.value)} 
+                                placeholder="Enter amount..."
+                            />
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setSettleOpen(false)}>Cancel</Button>
+                        <Button 
+                            className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                            onClick={() => settleMutation.mutate({ amount: Number(settleAmount), method: settleMethod })}
+                            disabled={!settleAmount || Number(settleAmount) <= 0 || settleMutation.isPending}
+                        >
+                            {settleMutation.isPending ? "Settling..." : "Confirm Payment"}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
