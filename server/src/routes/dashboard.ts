@@ -108,7 +108,6 @@ router.get('/sales', roleMiddleware('admin', 'manager'), (req: AuthRequest, res)
       ${end_date ? `AND o.created_at <= ?` : ''}
       GROUP BY DATE(o.created_at)
       ORDER BY date DESC
-      LIMIT 30
     `;
 
     const params: any[] = [branchId];

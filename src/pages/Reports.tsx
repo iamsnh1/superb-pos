@@ -52,8 +52,8 @@ export default function Reports() {
   });
 
   const { data: salesData } = useQuery({
-    queryKey: ["sales-report"],
-    queryFn: () => api.get<any>("/dashboard/sales"),
+    queryKey: ["sales-report", startDate, endDate],
+    queryFn: () => api.get<any>(`/dashboard/sales?start_date=${startDate}&end_date=${endDate}`),
   });
 
   const { data: profitLoss } = useQuery({
@@ -102,7 +102,7 @@ export default function Reports() {
     name: new Date(s.date).toLocaleDateString(undefined, { month: "short", day: "numeric" }),
     Revenue: s.revenue,
     Orders: s.orders,
-  })).reverse().slice(-14) || [];
+  })).reverse() || [];
 
   const garmentChartData = revenueByGarment?.data?.map((g: any) => ({
     name: g.garment_type,

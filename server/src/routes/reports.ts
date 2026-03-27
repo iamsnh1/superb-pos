@@ -198,14 +198,14 @@ router.get('/profit-loss', (req: AuthRequest, res) => {
       SELECT COALESCE(SUM(p.amount), 0) as total
       FROM payments p
       JOIN orders o ON p.order_id = o.id
-      WHERE o.branch_id = ? ${dateFilter.replace('created_at', 'p.created_at')}
+      WHERE o.branch_id = ? ${dateFilter.replace(/created_at/g, 'p.created_at')}
     `).get(...revenueParams) as any;
 
         // Total expenses
         const expenses = db.prepare(`
       SELECT COALESCE(SUM(amount), 0) as total
       FROM expenses
-      WHERE branch_id = ? ${dateFilter.replace('created_at', 'expense_date')}
+      WHERE branch_id = ? ${dateFilter.replace(/created_at/g, 'expense_date')}
     `).get(...expenseParams) as any;
 
         // Tailor labor costs
@@ -213,7 +213,7 @@ router.get('/profit-loss', (req: AuthRequest, res) => {
       SELECT COALESCE(SUM(mo.labor_cost), 0) as total
       FROM manufacturing_orders mo
       JOIN orders o ON mo.order_id = o.id
-      WHERE o.branch_id = ? ${dateFilter.replace('created_at', 'mo.created_at')}
+      WHERE o.branch_id = ? ${dateFilter.replace(/created_at/g, 'mo.created_at')}
     `).get(...revenueParams) as any;
 
         res.json({
