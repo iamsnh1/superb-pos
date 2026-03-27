@@ -13,7 +13,7 @@ router.get('/', (req: AuthRequest, res) => {
         // Explicit column selection to avoid collisions and 500s
         let query = `
             SELECT mo.id, mo.mo_number, mo.status, mo.order_id, mo.assigned_tailor_id,
-                   mo.priority, mo.work_instructions, mo.created_at,
+                   mo.priority, mo.work_instructions, mo.created_at, mo.labor_cost, mo.payment_status, mo.completion_date,
                    o.order_number, o.garment_type, o.delivery_date, o.priority as order_priority,
                    c.full_name as customer_name, c.phone as customer_phone,
                    t.full_name as tailor_name
@@ -82,7 +82,7 @@ router.get('/:id', (req: AuthRequest, res) => {
 // Update MO
 router.put('/:id', roleMiddleware('admin', 'manager', 'tailor'), (req: AuthRequest, res) => {
     try {
-        const { status, assigned_tailor_id, work_instructions, qc_notes, qc_passed, labor_cost } = req.body;
+        const { status, assigned_tailor_id, work_instructions, qc_notes, qc_passed, labor_cost, completion_date } = req.body;
         const updates: string[] = [];
         const params: any[] = [];
 
@@ -92,9 +92,13 @@ router.put('/:id', roleMiddleware('admin', 'manager', 'tailor'), (req: AuthReque
             if (status === 'cutting' || status === 'stitching') {
                 updates.push('start_date = COALESCE(start_date, CURRENT_TIMESTAMP)');
             }
-            if (status === 'completed') {
+            if (status === 'completed' && !completion_date) {
                 updates.push('completion_date = CURRENT_TIMESTAMP');
             }
+        }
+        if (completion_date) {
+            updates.push('completion_date = ?');
+            params.push(completion_date);
         }
         if (assigned_tailor_id !== undefined) {
             updates.push('assigned_tailor_id = ?');

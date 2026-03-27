@@ -20,6 +20,8 @@ export interface ManufacturingOrder {
     start_date?: string;
     completion_date?: string;
     design_specifications?: any;
+    labor_cost?: number;
+    payment_status?: string;
 }
 
 export function useManufacturingOrders(status?: string, tailor_id?: string, order_id?: string) {

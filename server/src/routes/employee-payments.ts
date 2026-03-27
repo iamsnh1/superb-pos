@@ -90,7 +90,7 @@ router.get('/:id/stats', roleMiddleware('admin', 'manager', 'tailor'), (req: Aut
         const pending = db.prepare(`
             SELECT SUM(labor_cost) as pending_amount
             FROM manufacturing_orders 
-            WHERE assigned_tailor_id = ? AND status = 'completed' AND payment_status = 'unpaid'
+            WHERE assigned_tailor_id = ? AND status = 'completed' AND (payment_status = 'unpaid' OR payment_status IS NULL)
         `).get(employeeId) as { pending_amount: number };
 
         // 3. Total Paid (Sum of payments)
@@ -124,7 +124,7 @@ router.post('/bulk-pay', roleMiddleware('admin', 'manager'), (req: AuthRequest, 
         const placeholders = mo_ids.map(() => '?').join(',');
         const mos = db.prepare(`
             SELECT id, labor_cost FROM manufacturing_orders 
-            WHERE id IN (${placeholders}) AND assigned_tailor_id = ? AND payment_status = 'unpaid'
+            WHERE id IN (${placeholders}) AND assigned_tailor_id = ? AND (payment_status = 'unpaid' OR payment_status IS NULL)
         `).all(...mo_ids, employee_id) as any[];
 
         if (mos.length === 0) {

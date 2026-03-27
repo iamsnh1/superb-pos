@@ -29,6 +29,7 @@ import {
   DollarSign,
   CalendarClock,
   Receipt,
+  ListChecks,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -72,6 +73,7 @@ const navGroups: NavGroup[] = [
     items: [
       { title: "Inventory", url: "/inventory", icon: Package, roles: ["admin", "manager", "inventory_manager"] },
       { title: "Staff & Payroll", url: "/employee-payments", icon: DollarSign, roles: ["admin", "manager"] },
+      { title: "Worker Reports", url: "/worker-reports", icon: ListChecks, roles: ["admin", "manager"] },
       { title: "Expenses", url: "/expenses", icon: Receipt, roles: ["admin", "manager"] },
       { title: "User Management", url: "/users", icon: Users, roles: ["admin"] },
       { title: "Analytics & Reports", url: "/reports", icon: BarChart3, roles: ["admin", "manager"] },

@@ -40,6 +40,7 @@ import UserManagement from "./pages/UserManagement";
 import SettingsPage from "./pages/Settings";
 import MyWork from "./pages/MyWork";
 import EmployeePayments from "./pages/EmployeePayments";
+import WorkerReports from "./pages/WorkerReports";
 import Appointments from "./pages/Appointments";
 import Expenses from "./pages/Expenses";
 import FabricCatalogue from "./pages/FabricCatalogue";
@@ -89,6 +90,7 @@ const App = () => (
             <Route path="/users" element={<ProtectedRoute allowedRoles={["admin"]}><UserManagement /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute allowedRoles={["admin", "manager"]}><SettingsPage /></ProtectedRoute>} />
             <Route path="/employee-payments" element={<ProtectedRoute allowedRoles={["admin", "manager"]}><EmployeePayments /></ProtectedRoute>} />
+            <Route path="/worker-reports" element={<ProtectedRoute allowedRoles={["admin", "manager"]}><WorkerReports /></ProtectedRoute>} />
             <Route path="/my-work" element={<ProtectedRoute><MyWork /></ProtectedRoute>} />
             <Route path="/appointments" element={<ProtectedRoute><Appointments /></ProtectedRoute>} />
             <Route path="/expenses" element={<ProtectedRoute allowedRoles={["admin", "manager"]}><Expenses /></ProtectedRoute>} />
