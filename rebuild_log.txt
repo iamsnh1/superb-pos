@@ -1,0 +1,23 @@
+﻿node.exe : - Searching 
+dependency tree
+At line:1 char:1
++ & "C:\Program 
+Files\nodejs/node.exe" 
+"C:\Program 
+Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~
+    + CategoryInfo           
+   : NotSpecified: (- Searc  
+  hing dependency tree:Str   
+ ing) [], RemoteException
+    + FullyQualifiedErrorId  
+   : NativeCommandError
+ 
+Attempting to build a module 
+with a space in the path
+See https://github.com/nodejs
+/node-gyp/issues/65#issuecomm
+ent-368820565 for reasons 
+why this may not work

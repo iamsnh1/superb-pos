@@ -1,0 +1,165 @@
+/* Fonts: system stack for 100% offline - no external CDN */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Tailoring ERP Design System - Warm, professional palette with indigo accents */
+
+@layer base {
+  :root {
+    /* Premium Clean Light Theme - Softer & Warmer */
+    --background: 210 20% 98%;
+    /* Soft off-white */
+    --foreground: 224 35% 15%;
+    /* Softer dark blue-grey */
+
+    --card: 0 0% 100%;
+    --card-foreground: 224 35% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 224 35% 15%;
+
+    /* Royal Blue Primary - Vibrant but professional */
+    --primary: 226 70% 55%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 20% 96%;
+    --secondary-foreground: 224 35% 15%;
+
+    --muted: 210 20% 96%;
+    --muted-foreground: 220 10% 50%;
+
+    /* Gold/Amber Accent */
+    --accent: 35 95% 58%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 150 65% 40%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 40 95% 55%;
+    --warning-foreground: 0 0% 100%;
+
+    --info: 210 85% 55%;
+    --info-foreground: 0 0% 100%;
+
+    --border: 220 15% 90%;
+    --input: 220 15% 90%;
+    --ring: 226 70% 55%;
+
+    --radius: 1rem;
+    /* More rounded */
+
+    /* Deep Midnight Sidebar - Richer */
+    --sidebar-background: 230 40% 10%;
+    --sidebar-foreground: 215 20% 95%;
+    --sidebar-primary: 226 70% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 230 35% 18%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 230 35% 18%;
+    --sidebar-ring: 226 70% 60%;
+  }
+
+  .dark {
+    /* Rich Dark Theme */
+    --background: 230 35% 8%;
+    --foreground: 215 20% 95%;
+
+    --card: 230 30% 12%;
+    --card-foreground: 215 20% 95%;
+
+    --popover: 230 30% 12%;
+    --popover-foreground: 215 20% 95%;
+
+    --primary: 226 70% 60%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 230 30% 15%;
+    --secondary-foreground: 215 20% 95%;
+
+    --muted: 230 30% 15%;
+    --muted-foreground: 215 15% 65%;
+
+    --accent: 35 95% 58%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 150 60% 45%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 40 90% 50%;
+    --warning-foreground: 0 0% 100%;
+
+    --info: 210 80% 60%;
+    --info-foreground: 0 0% 100%;
+
+    --border: 230 30% 18%;
+    --input: 230 30% 18%;
+    --ring: 226 70% 60%;
+
+    --sidebar-background: 230 40% 6%;
+    --sidebar-foreground: 215 20% 90%;
+    --sidebar-primary: 226 70% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 230 30% 14%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 230 30% 14%;
+    --sidebar-ring: 226 70% 60%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Inter', 'DM Sans', system-ui, sans-serif;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: 'DM Sans', 'Inter', system-ui, sans-serif;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/* Global Print Utilities */
+@media print {
+
+  /* Minimal logic for non-bill pages; Bills are handled via popup windows */
+  body * {
+    visibility: hidden !important;
+  }
+
+  .printable-content,
+  .printable-content * {
+    visibility: visible !important;
+  }
+
+  .printable-content {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+}
