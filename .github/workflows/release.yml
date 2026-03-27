@@ -34,6 +34,14 @@ jobs:
           npm ci
           cd server && npm ci
 
+      - name: Rebuild native modules (better-sqlite3) for Electron
+        # This is CRITICAL: better-sqlite3 must be compiled against the exact
+        # Electron ABI, NOT the system Node.js ABI, otherwise the server
+        # crashes on launch causing 'Server failed to start'.
+        run: |
+          cd server
+          npx @electron/rebuild -f -w better-sqlite3 --electronVersion 40.8.5
+
       - name: Build frontend
         run: npm run build:frontend
 
